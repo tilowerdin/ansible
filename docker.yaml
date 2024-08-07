@@ -1,0 +1,5 @@
+- name: Ping
+  hosts: raspberrypi
+  become: true
+  roles:
+    - docker

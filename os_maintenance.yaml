@@ -1,0 +1,8 @@
+- name: OS Maintenance
+  hosts: raspberrypi
+  become: true
+  tasks:
+    - name: Update sources
+      apt:
+        update_cache: true
+        upgrade: true

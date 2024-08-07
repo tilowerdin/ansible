@@ -1,0 +1,5 @@
+raspberrypi:
+  hosts:
+    rp1:
+      ansible_host: raspberrypi.local
+      ansible_user: pi
