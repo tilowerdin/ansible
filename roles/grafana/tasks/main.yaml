@@ -1,0 +1,38 @@
+- name: Create user grafana
+  ansible.builtin.user:
+    name: grafana
+    create_home: true
+    shell: /bin/bash
+    groups: docker
+    append: true
+  register: created_user
+
+- name: Copy files
+  become: true
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ created_user.home }}/workspace/{{ item }}"
+    owner: "{{ created_user.name }}"
+    group: "{{ created_user.name }}"
+    mode: '0644'
+    directory_mode: '0755'
+  loop:
+    - grafana/
+    - docker-compose.yaml
+    - otel-collector.yaml
+    - prometheus.yaml
+
+- name: Stop container if running
+  become_user: "{{ created_user.name }}"
+  become: true
+  community.docker.docker_compose_v2:
+    project_src: "{{ created_user.home }}/workspace"
+    state: stopped
+
+- name: Start docker containers
+  become_user: "{{ created_user.name }}"
+  become: true
+  community.docker.docker_compose_v2:
+    project_src: "{{ created_user.home }}/workspace"
+
+
