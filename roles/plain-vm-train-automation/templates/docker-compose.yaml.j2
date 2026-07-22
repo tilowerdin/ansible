@@ -10,8 +10,13 @@ services:
       VM_USERNAME: {{ vm.username }}
       VM_PASSWORD: {{ vm.password }}
       NOOP_MODE: "false"
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://raspberrypi.local:4318
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
     volumes:
       - ./data:/data
     ports:
       - 8000:8080
+
+networks:
+  default:
+    external: true
+    name: observability

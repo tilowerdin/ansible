@@ -65,3 +65,7 @@ services:
 volumes:
   data-prometheus:
   data-grafana:
+
+networks:
+  default:
+    name: observability
