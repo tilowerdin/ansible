@@ -1,0 +1,4 @@
+dependencies:
+  - basic-packages
+  - docker
+  - plain-vm-train-automation

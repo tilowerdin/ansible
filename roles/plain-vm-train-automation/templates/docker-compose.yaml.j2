@@ -1,0 +1,17 @@
+services:
+  vm-train-automation:
+    container_name: vm-train-automation
+    image: {{ docker.image }}:{{ docker.tag }}
+    pull_policy: always
+    restart: unless-stopped
+    user: "{{ docker_user }}"
+    environment:
+      DATA_DIR: /data
+      VM_USERNAME: {{ vm.username }}
+      VM_PASSWORD: {{ vm.password }}
+      NOOP_MODE: "false"
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://raspberrypi.local:4318
+    volumes:
+      - ./data:/data
+    ports:
+      - 8000:8080

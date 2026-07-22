@@ -5,6 +5,12 @@
     "scripts": {
       "deploy-grafana": [
         "ansible-playbook -i inventory.yaml grafana.yaml"
+      ],
+      "deploy-vm": [
+        "ansible-playbook -i inventory.yaml plain-vm-train-automation.yaml --ask-vault-pass"
+      ],
+      "deploy-vm-complete": [
+        "ansible-playbook -i inventory.yaml vm-train-automation.yaml --ask-vault-pass"
       ]
     }
   }

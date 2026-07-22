@@ -1,0 +1,62 @@
+---
+- name: Install unattended_upgrades
+  apt:
+    name: unattended-upgrades
+    state: present
+
+# This file defines how to handle updates that modify config files maintained by root (keep, overwrite, etc.)
+- name: Copy confold and confdef config
+  template:
+    src: 10confoldanddef
+    dest: /etc/apt/apt.conf.d/
+    mode: '0644'
+    owner: root
+    group: root
+
+# This file defines the update time schedule
+- name: Copy Upgrade
+  template:
+    src: 20auto-upgrades
+    dest: /etc/apt/apt.conf.d/
+    mode: '0644'
+    owner: root
+    group: root
+
+# This file defines which updates should be installed and how
+- name: Copy unattended upgrades config
+  template:
+    src: 50unattended-upgrades
+    dest: /etc/apt/apt.conf.d/
+    mode: '0644'
+    owner: root
+    group: root
+  vars:
+    unattended_upgrades_mail: "{{ email }}"
+
+- name: Create directory for Wants-Dependencies of apt-daily-upgrade.service
+  file:
+    path: /etc/systemd/system/apt-daily-upgrade.service.wants
+    state: directory
+
+# This makes sure that whenever apt-daily-upgrade.service is run, apt-daily.service (=apt update) runs before
+- name: Add Wants-Dependency from apt-daily-upgrade.service to apt-daily.service via symlink
+  file:
+    path: /etc/systemd/system/apt-daily-upgrade.service.wants/apt-daily.service
+    src: /lib/systemd/system/apt-daily.service
+    state: link
+
+# This file defines the timer for the upgrade time schedule and overrides the default that comes with the apt package
+- name: Override apt upgrade timer
+  template:
+    src: apt-daily-upgrade.timer
+    dest: /etc/systemd/system/apt-daily-upgrade.timer
+    mode: '0644'
+    owner: root
+    group: root
+
+- name: Mask Ubuntu default apt update timer
+  systemd:
+    name: apt-daily.timer
+    state: "stopped"
+    masked: true
+    daemon_reload: true

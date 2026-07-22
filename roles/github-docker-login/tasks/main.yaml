@@ -1,0 +1,8 @@
+- name: Login to github packages
+  become_user: "{{ docker_user }}"
+  become: true
+  community.docker.docker_login:
+    registry_url: ghcr.io
+    username: "{{ github.username }}"
+    password: "{{ github.token }}"
+    reauthorize: true

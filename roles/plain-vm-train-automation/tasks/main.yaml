@@ -1,0 +1,84 @@
+- name: Create user vm-train-automation
+  ansible.builtin.user:
+    name: vm-train-automation
+    create_home: true
+    shell: /bin/bash
+    groups: docker
+    append: true
+  register: created_user
+
+- name: Copy docker compose
+  become_user: "{{ created_user.name }}"
+  become: true
+  template:
+    src: docker-compose.yaml.j2
+    dest: "{{ created_user.home }}/docker-compose.yaml"
+    owner: "{{ created_user.name }}"
+    mode: '0644'
+  vars:
+    docker_user: "{{ created_user.uid }}"
+
+- name: Check if data directory already exists
+  become_user: "{{ created_user.name }}"
+  become: true
+  ansible.builtin.stat:
+    path: "{{ created_user.home }}/data"
+  register: data_dir_stat
+
+#- name: Backup existing data directory (copy)
+#  become_user: "{{ created_user.name }}"
+#  become: true
+#  when: data_dir_stat.stat.exists
+#  vars:
+#    backup_ts: "{{ now(utc=true, fmt='%Y%m%dT%H%M%SZ') }}"
+#    backup_dir: "{{ created_user.home }}/data-backup-{{ backup_ts }}"
+#  block:
+#    - name: Create backup directory
+#      ansible.builtin.file:
+#        path: "{{ backup_dir }}"
+#        state: directory
+#        owner: "{{ created_user.name }}"
+#        mode: '0755'
+#
+#    - name: Copy data directory contents to backup directory
+#      ansible.builtin.copy:
+#        remote_src: true
+#        src: "{{ created_user.home }}/data/"
+#        dest: "{{ backup_dir }}/"
+#        owner: "{{ created_user.name }}"
+#        mode: preserve
+
+- name: Create data directory
+  become_user: "{{ created_user.name }}"
+  become: true
+  ansible.builtin.file:
+    path: "{{ created_user.home }}/data"
+    state: directory
+    owner: "{{ created_user.name }}"
+    mode: '0755'
+
+#- name: Deploy strategies
+#  include_role:
+#    name: deploy-strategies
+#  vars:
+#    username: "{{ created_user.name }}"
+#    data_dir: "{{ created_user.home }}/data"
+
+- name: Login to github
+  include_role:
+    name: github-docker-login
+  vars:
+    docker_user: "{{ created_user.name }}"
+
+- name: Stop container if running
+  become_user: "{{ created_user.name }}"
+  become: true
+  community.docker.docker_compose_v2:
+    project_src: "{{ created_user.home }}"
+    state: stopped
+
+- name: Start docker container
+  become_user: "{{ created_user.name }}"
+  become: true
+  community.docker.docker_compose_v2:
+    project_src: "{{ created_user.home }}"

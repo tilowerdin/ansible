@@ -1,0 +1,5 @@
+- name: Deploy the VMManager train automation
+  hosts: raspberrypi
+  become: true
+  roles:
+    - plain-vm-train-automation

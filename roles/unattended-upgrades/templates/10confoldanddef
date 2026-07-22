@@ -1,0 +1,6 @@
+// {{ ansible_managed }}
+
+Dpkg::Options {
+   "--force-confdef";
+   "--force-confold";
+}
